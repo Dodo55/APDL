@@ -35,7 +35,13 @@ class DB_RECORD extends BASEOBJECT {
         $db = db_get_active();
         if ($db) {
             if ($col == false) {
-                $col = $db->get_pkey(static::$__table);
+                $pk = $db->get_pkey(static::$__table);
+                if ($pk) {
+                    $col = $pk;
+                } else {
+                    log("No primary key column in table '" . static::$__table . "', cannot query without specifying selector column!", L_ERROR);
+                    return new DUMMY;
+                }
             }
             if ($val) {
                 $filter = array("`{0}`='{1}'", array($col, $val));
@@ -64,8 +70,11 @@ class DB_RECORD extends BASEOBJECT {
     public function &__get($var) {
         if (isset($this->__efields[$var])) {
             return $this->__efields[$var][1];
+        } elseif (db_get_active()->check_field($this->__dbtable, $var)) {
+            return $this->__recdata[$var];
         }
-        return $this->__recdata[$var];
+        log("No column '$var' in table $this->__dbtable", L_ERROR);
+        return false;
     }
 
     public function __set($var, $val) {
@@ -83,12 +92,12 @@ class DB_RECORD extends BASEOBJECT {
         }
     }
 
-    public function GetPKField($manualkey=false) {
-        $pk = db_get_active()->get_pkey($this->__dbtable);
-        if (!$pk) {
-            log("No primary key field in table $this->__dbtable!",L_WARNING);
-        }
-        return $pk;
+    public function &__exposedata() {
+        return $this->__recdata;
+    }
+
+    public function GetPKField() {
+        return db_get_active()->get_pkey($this->__dbtable);
     }
 
     public function Exists() {
@@ -106,7 +115,7 @@ class DB_RECORD extends BASEOBJECT {
             $db->query(db_querybuilder($db, "update", $this->__dbtable, array(
                 "values" => $this->__recdata,
                 "where" => array(
-                    "`" . $this->GetPKField() . "` = '" . $db->escape($this->__key) . "'", ""
+                    $this->GetRecordSelector(), ""
                 )
             )));
             $this->__key = $this->{$this->GetPKField()};
@@ -116,8 +125,7 @@ class DB_RECORD extends BASEOBJECT {
             if ($ak) {
                 $this->{$this->GetPKField()} = $ak;
             }
-            $this->__key = $this->{$this->GetPKField()};
-            $this->__exists = true;
+            $this->MarkAsExisting();
         }
     }
 
@@ -129,7 +137,7 @@ class DB_RECORD extends BASEOBJECT {
             $t = $this->__dbtable;
             $db->query(db_querybuilder($db, "delete", $t, array(
                 "where" => array(
-                    $this->__pkselector(), ""
+                    $this->GetRecordSelector(), ""
                 )
             )));
             $this->__exists = false;
@@ -138,8 +146,17 @@ class DB_RECORD extends BASEOBJECT {
         }
     }
 
-    public function __pkselector() {
-        return "`" . $this->GetPKField() . "` = '" . db_get_active()->escape($this->__key) . "'";
+    public function GetRecordSelector() {
+        if ($this->GetPKField()) {
+            return "`" . $this->GetPKField() . "` = '" . db_get_active()->escape($this->__key) . "'";
+        } else {
+            log("No primary key column in table '$this->__dbtable', using whole record data as selector!", L_WARNING);
+            $selector = array();
+            foreach ($this->__recdata as $col => $val) {
+                $selector[] = "`" . $col . "` = '" . db_get_active()->escape($val) . "'";
+            }
+            return implode(" AND ", $selector);
+        }
     }
 
     public function EncField($field, $default = false, $encoding = "json") {

@@ -12,7 +12,7 @@ error_reporting(0);
 
 //Basic constants
 define("APDL_SYSROOT", realpath(__DIR__)); //DO NOT DISTURB
-define("APDL_VERSION", "experimental r8");
+define("APDL_VERSION", "experimental r9");
 define("APDL_DEBUG", TRUE); //DEBUG MODE TOGGLE
 define("APDL_HANDLE_PHPERR", TRUE); //Let APDL handle PHP error reporting
 
@@ -56,7 +56,8 @@ log("Base Object loaded", Log::L_INFO);
 
 require_once(APDL_SYSROOT . "/lib/http.php");
 log("HTTP Library loaded", Log::L_INFO);
-define("APDL_HTTP_WEBROOT",APDL_HTTP::find_webroot());
+HTTP::__bind("rewritepaths","\\apdl\\rewritepaths");
+define("APDL_HTTP_WEBROOT",HTTP::find_webroot());
 
 log("Detected Webroot is: " . APDL_HTTP_WEBROOT, L_INFO);
 

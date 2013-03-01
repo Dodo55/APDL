@@ -58,9 +58,10 @@ class Log {
                 break;
             default:
                 $errlev = "N/A";
+                $level = L_WARNING;
                 break;
         }
-        self::log("[PHP: $errlev] " . $error . " at " . $file . " Line: " . $line, $level);
+        self::log("<span style='color: #F08'>[PHP: $errlev]</span> " . $error . " at " . $file . " Line: " . $line, $level);
         return TRUE;
     }
 

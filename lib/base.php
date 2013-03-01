@@ -8,7 +8,7 @@ Class BASEOBJECT {
     /**
      * Bind a function to an event
      * @param string $event The name of the event
-     * @param function $fn The function to execute
+     * @param callable $fn The function to execute
      */
     public function __bind($event, $fn) {
         if (is_callable($fn)) {
@@ -24,9 +24,9 @@ Class BASEOBJECT {
             } else {
                 if (!isset(self::$__events[$event][$fnHash])) {
                     self::$__events[$event][$fnHash] = $fn;
-                    LOG::log("New function bound to static event \"$event\" on " . __CLASS__);
+                    LOG::log("New function bound to static event \"$event\" on " . get_called_class());
                 } else {
-                    LOG::log("Static event \"$event\" on " . __CLASS__ . " already has the same function bound!", Log::L_WARNING);
+                    LOG::log("Static event \"$event\" on " .get_called_class() . " already has the same function bound!", Log::L_WARNING);
                 }
             }
         } else {
@@ -39,14 +39,14 @@ Class BASEOBJECT {
      * @param string $event The event to fire
      */
     public function __fire($event) {
-        if (is_array(self::$__events[$event])) {
+        if (isset(self::$__events[$event]) && is_array(self::$__events[$event])) {
             foreach (self::$__events[$event] as $fn) {
                 if (isset($this)) {
-                    LOG::log("Event \"$event\" of class: " . __CLASS__ . " fired by object: " . spl_object_hash($this));
-                    call_user_func_array($fn, array_merge(array($this), array_slice(func_get_args(), 1)));
+                    LOG::log("Event \"$event\" of class: " . get_class($this) . " fired by object: " . spl_object_hash($this));
+                    return call_user_func_array($fn, array_merge(array($this), array_slice(func_get_args(), 1)));
                 } else {
-                    LOG::log("Event \"$event\" of class: " . __CLASS__ . " fired statically");
-                    call_user_func_array($fn, array_merge(array(__CLASS__), array_slice(func_get_args(), 1)));
+                    LOG::log("Event \"$event\" of class: " . get_called_class() . " fired statically");
+                    return call_user_func_array($fn, array_merge(array(get_called_class()), array_slice(func_get_args(), 1)));
                 }
             }
         }
@@ -54,10 +54,11 @@ Class BASEOBJECT {
             if (is_array($this->__oevents[$event])) {
                 foreach ($this->__oevents[$event] as $fn) {
                     LOG::log("Event \"$event\" of object " . spl_object_hash($this) . " fired");
-                    call_user_func_array($fn, array_merge(array($this), array_slice(func_get_args(), 1)));
+                    return call_user_func_array($fn, array_merge(array($this), array_slice(func_get_args(), 1)));
                 }
             }
         }
+    return false;
     }
 
 }
@@ -71,7 +72,7 @@ class DUMMY extends BASEOBJECT {
     }
 
     public function __call($fn, $args) {
-        log("Method $fn called on dummy object");
+        log("Method $fn called on failsafe dummy object");
         if ($this->err) {
             log($this->err, $this->elev);
         }
@@ -79,7 +80,7 @@ class DUMMY extends BASEOBJECT {
     }
 
     public static function __callstatic($fn, $args) {
-        log("Static method $fn called on dummy class");
+        log("Static method $fn called on failsafe dummy class");
         return FALSE;
     }
 }

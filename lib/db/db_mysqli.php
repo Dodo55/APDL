@@ -60,7 +60,7 @@ class DB_MYSQLi extends DB_CONNECTION {
     }
 
     public function get_pkey($table) {
-        if (!$this->pkcache[$table]) {
+        if (!isset($this->pkcache[$table]) || !$this->pkcache[$table]) {
             $res = $this->fetch($this->query("SHOW KEYS FROM {$this->prefix_table($table)} WHERE Key_name = 'PRIMARY'"));
             $this->pkcache[$table] = $res['Column_name'];
         }

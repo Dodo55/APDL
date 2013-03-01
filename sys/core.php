@@ -42,7 +42,7 @@ class APDL {
             log("Trying to overwrite reserved sysvar $var!", L_ERROR);
         }
         //Check loglevel to skip typechecks if loglevel too low
-        if (APDL_LOGLEVEL >= L_DEBUG) {
+        if (APDL_LOGLEVEL >= L_DEBUG && $internalcall != APDL_INTERNALCALL) {
             if (is_string($val) || is_scalar($val)) {
                 $vdump = $val;
             } else {
@@ -122,7 +122,7 @@ class APDL {
         } else {
             if (!sysvar("apdl_dead")) {
                 setvar("apdl_dead", true);
-                apdl_handle_safe_die();
+                handle_safe_die();
             }
         }
     }

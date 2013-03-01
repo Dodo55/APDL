@@ -35,8 +35,7 @@ class DB_RESULT extends BASEOBJECT {
         $db = db_get_active();
         while ($data = $db->fetch($this->result)) {
             $r = new $this->caller($data);
-            $r->__exists = true;
-            $r->__key = $r->{$r->GetPKField()};
+            $r->MarkAsExisting();
             if ($index) {
                 $res[$data[$index]] = $r;
             } else {
@@ -52,7 +51,7 @@ class DB_RESULT extends BASEOBJECT {
 
 }
 
-function db_querybuilder($conn, $action, $table, $data = "") {
+function db_querybuilder($conn, $action, $table, $data = array()) {
     $actionmap = array("insert" => "INSERT INTO",
         "select" => "SELECT * FROM",
         "update" => "UPDATE",
