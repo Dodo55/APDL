@@ -28,7 +28,7 @@ class APDL {
      * @static
      * @var array Reserved VAR names
      */
-    private static $reserver_vars = array("__encoders");
+    private static $reserved_vars = array("__encoders");
 
     /**
      * Set APDL Sysvar
@@ -36,7 +36,7 @@ class APDL {
      * @param string $val Sysvar value
      */
     public static function Setvar($var, $val, $internalcall = false) {
-        if (!in_array($var, self::$reserver_vars) || $internalcall == APDL_INTERNALCALL) {
+        if (!in_array($var, self::$reserved_vars) || $internalcall == APDL_INTERNALCALL) {
             self::$vars[$var] = $val;
         } else {
             log("Trying to overwrite reserved sysvar $var!", L_ERROR);
