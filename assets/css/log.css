@@ -1,0 +1,13 @@
+body{background:black;color:white;font-family:monospace;}
+#log{width:870px; margin: auto; border:1px solid white; background: #001020;
+    padding:15px;margin-top: 50px;}
+table{border:0}
+td:first-child{min-width: 150px;}
+td{vertical-align: top}
+.level_1 td{color: red; font-weight: bold;}
+.level_2 td{color: #F60;}
+.level_3 td{color: yellow;}
+.level_4 td{color: white;}
+.level_5 td{color: #0AF;}
+.level_6 td{color: lime;}
+.backtrace{display:none}

@@ -14,7 +14,11 @@ class Log {
 
     static public function log($message, $level = L_DEBUG) {
         if (APDL::$LOGLEVEL >= $level) {
-            self::$entries[] = (object)array("level" => $level, "message" => $message, "caller" => APDL::$CTRACK);
+            $entry = (object)array("level" => $level, "message" => $message, "caller" => APDL::$CTRACK);
+            if (APDL_SYSMODE >= SYSMODE_DEBUG_BACKTRACE) {
+                $entry->backtrace = debug_backtrace();
+            }
+            self::$entries[] = $entry;
         }
         if ($level == L_FATAL) {
             self::$entries[] = (object)array("level" => L_FATAL, "message" => "---FATAL ERROR, EXECUTION STOPPED---", "caller" => "APDL-Core");
@@ -65,7 +69,7 @@ class Log {
         return TRUE;
     }
 
-    static public function dumplog($target = APDL_OUTPUT_SCREEN) {
+    static public function dumplog($target = APDL_OUTPUT_SCREEN, $die = false) {
 
         if ($target == APDL_OUTPUT_FILE) {
             $output = "";
@@ -78,27 +82,25 @@ class Log {
             }
             file_put_contents(APDL_SYSROOT . "/logs/" . time() . strstr(microtime(), " ", TRUE) . ".log", $output);
         } else {
-            $style = "body{background:black;color:white;font-family:monospace;}
-                     #log{width:870px; margin: auto; border:1px solid white; background: #001020;
-                        padding:15px;margin-top: 50px;}
-                     table{border:0}
-                     td:first-child{min-width: 150px;}
-                     td{vertical-align: top}
-                     .level_1 td{color: red; font-weight: bold;}
-                     .level_2 td{color: #F60;}
-                     .level_3 td{color: yellow;}
-                     .level_4 td{color: white;}
-                     .level_5 td{color: #0AF;}
-                     .level_6 td{color: lime;}
-                        ";
-            $body = "<div id='log'><img src='" . webpath(APDL_SYSROOT . "/assets/apdl.png") . "' style='display: block;margin:auto'/>
+            $body = "<div id='log'><img src='" . webpath(APDL_SYSROOT . "/assets/img/apdl.png") . "' style='display: block;margin:auto'/>
             <table>{CELLS}</table></div>";
             $cells = "";
             foreach (self::$entries as $key => $entry) {
-                $cells .= "<tr class='level_$entry->level'><td>[$entry->caller]</td><td>$entry->message</td></tr>";
+                $contents = $entry->message;
+                if (APDL_SYSMODE >= SYSMODE_DEBUG_BACKTRACE) {
+                    $contents .= "<span class='backtrace'>" . print_r($entry->backtrace, 1) . "</span>";
+                }
+                $cells .= "<tr class='level_$entry->level'><td>[$entry->caller]</td><td>$contents</td></tr>";
             }
             $body = str_replace("{CELLS}", $cells, $body);
-            APDL::EchoHTML(array("body" => $body, "style" => $style), TRUE);
+            $html = new HTML5;
+            $html->css(webpath(APDL_SYSROOT."/assets/css/log.css"));
+            if (APDL_SYSMODE >= SYSMODE_DEBUG_BACKTRACE) {
+                $html->scriptlink(webpath(APDL_SYSROOT . "/assets/js/jquery.js"));
+                $html->scriptlink(webpath(APDL_SYSROOT . "/assets/js/backtrace.js"));
+            }
+            $html->body = $body;
+            echo $html->render($die);
         }
     }
 

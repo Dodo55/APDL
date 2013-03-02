@@ -70,55 +70,10 @@ class APDL {
         return self::$vars[$var];
     }
 
-    /**
-     * Echo Skeletoned HTML
-     *
-     * @param array/string $content body/(body,style,title)
-     * @param bool $die = FALSE
-     * @param bool $obclean = TRUE
-     */
-    public static function EchoHTML($content, $die = FALSE, $obclean = TRUE) {
-        if (is_array($content)) {
-            $body = $content["body"];
-            $style = $content["style"];
-            $title = $content["title"];
-            if (isset($content["head"])) {
-                $head = $content["head"];
-            }
-        } else {
-            $body = $content;
-        }
-        $skeleton = file_get_contents(APDL_SYSROOT . "/assets/skeleton.html");
-        if (isset($body)) {
-            $skeleton = str_replace("<!--{APDL_BODY}-->", $body, $skeleton);
-        } else {
-            Log::log("EchoHTML(): No body specified", Log::L_WARNING);
-        }
-        if (isset($head)) {
-            $skeleton = preg_replace("#<head>.*?</head>#ims", $head, $skeleton);
-        } else {
-            if (isset($style)) {
-                $skeleton = str_replace("<!--{APDL_STYLE}-->", "<style>" . $style . "</style>", $skeleton);
-            }
-            if (isset($title)) {
-                $skeleton = str_replace("<!--{APDL_TITLE}-->", "<title>" . $title . "</title>", $skeleton);
-            }
-        }
-        if ($obclean) {
-            if (ob_get_level() > 0) {
-                ob_clean();
-            }
-        }
-        echo ($skeleton);
-        if ($die) {
-            ob_end_flush();
-            die();
-        }
-    }
 
     public static function die_on_fatal() {
-        if (APDL_DEBUG) {
-            Log::dumplog();
+        if (APDL_SYSMODE >= APDL_DEBUG) {
+            Log::dumplog(APDL_OUTPUT_SCREEN, OUTPUT_DIE);
         } else {
             if (!sysvar("apdl_dead")) {
                 setvar("apdl_dead", true);
