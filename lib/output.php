@@ -66,6 +66,7 @@ EOT;
         $this->elements['charset'] = 'utf-8';
         $this->elements['head'] = array();
         $this->elements['body'] = array();
+        $this->elements['title']="";
     }
 
     public function scriptlink($src) {

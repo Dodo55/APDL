@@ -10,8 +10,8 @@ class ROUTING {
         if (array_key_exists($selector, self::$routes)) {
             log("Overwriting existing URL route '$selector'='" . self::$routes[$selector] . "' with '$target'!", L_WARNING);
         }
-        if ($selector=="$1"){
-            log("Catch-all routing in effect to $target!",L_WARNING);
+        if ($selector == "$1") {
+            log("Catch-all routing in effect to $target!", L_WARNING);
         }
         self::$routes[$selector] = $target;
         log("URL route '$selector' set to '$target'");
@@ -28,6 +28,7 @@ class ROUTING {
     }
 
     public static function get_route($target, $args = array()) {
+        $err = "";
         $te = explode("?", $target, 2);
         if (isset($te[1])) {
             $args = array_merge($args, self::getparams_to_arr($te[1]));
@@ -42,9 +43,9 @@ class ROUTING {
             foreach ($re as $index => $element) {
                 if (strpos($element, "?") !== false) {
                     $ete = explode("?", $element, 2);
-                    $params=self::getparams_to_arr($ete[1]);
+                    $params = self::getparams_to_arr($ete[1]);
                     $badparam = false;
-                    foreach ($params as $pvar=>$pval){
+                    foreach ($params as $pvar => $pval) {
                         if (preg_match("#(\\$[0-9])#", $pval, $abrm)) {
                             $selector = str_replace($abrm[1], $args[$pvar], $selector);
                             unset($thisargs[$pvar]);
@@ -65,8 +66,10 @@ class ROUTING {
                 if (isset($te[$index]) && $element == $te[$index]) {
                     continue;
                 }
-                if (strpos($element, "$") !== false) {
-                    $selector = str_replace($element, $te[$index], $selector);
+                if (preg_match("#(\\$[0-9])#", $element, $rxm)) {
+                    $mask = str_replace($rxm[1], "", $element);
+                    $dval=str_replace($mask,"",$te[$index]);
+                    $selector = str_replace($rxm[1], $dval, $selector);
                     continue;
                 }
                 $ok = false;
@@ -148,8 +151,8 @@ class ROUTING {
                 log("URL '$url' matches route '$selector' and resolves to: '$route'", L_INFO);
                 $te = explode("?", $route, 2);
                 if (isset($te[1])) {
-                    $fixargs=self::getparams_to_arr($te[1]);
-                    foreach ($fixargs as $var=>$val){
+                    $fixargs = self::getparams_to_arr($te[1]);
+                    foreach ($fixargs as $var => $val) {
                         $args[$var] = $val;
                     }
                 }
