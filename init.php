@@ -1,10 +1,13 @@
 <?php
 
+/**
+ * Advanced PHP Development Library
+ */
+
 namespace APDL;
 
-    /**
-     * Advanced PHP Development Library
-     */
+//Start timer
+define("APDL_START_MT", @microtime(true));
 
 //Error reporting off by default
 ini_set('display_errors', '0');
@@ -12,7 +15,7 @@ error_reporting(0);
 
 //Basic constants
 define("APDL_SYSROOT", realpath(__DIR__)); //DO NOT DISTURB
-define("APDL_VERSION", "experimental r10");
+define("APDL_VERSION", "experimental r12");
 
 //Load system core
 require_once(APDL_SYSROOT . "/sys/const.php");
@@ -71,5 +74,12 @@ log("Database layer loaded", Log::L_INFO);
 
 require_once(APDL_SYSROOT . "/lib/output.php");
 log("Output generator & HTML5 output class loaded", Log::L_INFO);
+
+require_once(APDL_SYSROOT . "/lib/routing.php");
+log("Routing loaded", Log::L_INFO);
+
+require_once(APDL_SYSROOT . "/lib/controller.php");
+log("Controller class loaded", Log::L_INFO);
+
 
 set_codetracker("Global");
