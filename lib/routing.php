@@ -1,6 +1,7 @@
 <?php
 namespace APDL;
 
+HTTP::__ping();
 
 class ROUTING {
     //TODO: Better implementation with less loops
@@ -27,7 +28,13 @@ class ROUTING {
         return $array;
     }
 
+    public static function route_exists($selector) {
+        return array_key_exists($selector, self::$routes);
+    }
+
     public static function get_route($target, $args = array()) {
+        $caller_region = APDL::$CTRACK;
+        set_codetracker("Routing");
         $err = "";
         $te = explode("?", $target, 2);
         if (isset($te[1])) {
@@ -51,10 +58,13 @@ class ROUTING {
                             unset($thisargs[$pvar]);
                             continue;
                         }
-                        if ($args[$pvar] != $pval) {
+                        if (!isset($args[$pvar]) || $args[$pvar] != $pval) {
                             $badparam = true;
-                            $err = "Route '$selector' could match, but it sets argument '$pval' to '$pvar' which conflicts with the current arguments";
+                            //TODO: Causes false warnings, need to rewrite the whole control structure of the loop to make it reliable...
+                            //$err = "Route '$selector' could match, but it sets argument '$pvar' to '$pval' which conflicts with the current arguments";
                             break;
+                        } else {
+                            unset($thisargs[$pvar]);
                         }
                     }
                     if ($badparam) {
@@ -68,7 +78,7 @@ class ROUTING {
                 }
                 if (preg_match("#(\\$[0-9])#", $element, $rxm)) {
                     $mask = str_replace($rxm[1], "", $element);
-                    $dval=str_replace($mask,"",$te[$index]);
+                    $dval = str_replace($mask, "", $te[$index]);
                     $selector = str_replace($rxm[1], $dval, $selector);
                     continue;
                 }
@@ -102,24 +112,30 @@ class ROUTING {
                 if (!empty($thisargs)) {
                     $selector .= "/" . implode("/", $thisargs);
                 }
+                set_codetracker($caller_region);
                 return $selector;
             }
         }
-        log("No matching route found for controller path '$target'! $err", L_ERROR);
-        return false;
+        log("No matching route found for controller path '$target', returning default m/c route format! $err", L_WARNING);
+        set_codetracker($caller_region);
+        return $target . "/" . implode("/", $args);
     }
 
     public static function resolve_url($url) {
+        $caller_region = APDL::$CTRACK;
+        set_codetracker("Routing");
         $tags = explode("/", $url);
         if ($tags[0] == "") {
-            log("Routing: nothing to resolve", L_INFO);
-            return array("target" => "", "args" => "");
+            log("Routing: webroot detected, resolving as route 'index'", L_INFO);
+            set_codetracker($caller_region);
+            return self::resolve_url("index");
         }
         $match = false;
         $target = "?";
         log("Resolving URL route '$url'...", L_INFO);
         foreach (self::$routes as $selector => $route) {
             if (strpos($route, "/") === FALSE && $tags[0] == $selector) {
+                set_codetracker($caller_region);
                 return self::resolve_url(str_replace($selector, $route, $url));
             }
             $s_exp = explode("/", $selector);
@@ -127,15 +143,17 @@ class ROUTING {
             foreach ($s_exp as $index => $tag) {
                 if (isset($tags[$index]) && $tag == $tags[$index]) {
                     $match = true;
-                } elseif (isset($tags[$index]) && strpos($tag, "$") !== FALSE) {
+                } elseif (!empty($tags[$index]) && strpos($tag, "$") !== FALSE) {
                     $tagvar = substr($tag, 1);
                     $match = true;
                     $route = str_replace("$" . $tagvar, $tags[$index], $route);
                 } elseif (strpos($tag, "[") !== FALSE) {
                     $match = true;
-                    $an = trim($tag, "[]");
-                    $args[$an] = $tags[$index];
-                } elseif (isset($tags[$index]) && strpos($tag, "{") !== FALSE) {
+                    if (!empty($tags[$index])) {
+                        $an = trim($tag, "[]");
+                        $args[$an] = $tags[$index];
+                    }
+                } elseif (!empty($tags[$index]) && strpos($tag, "{") !== FALSE) {
                     $match = true;
                     $an = trim($tag, "{}");
                     $args[$an] = $tags[$index];
@@ -157,7 +175,7 @@ class ROUTING {
                     }
                 }
                 $args = array_merge($args, $plusargs);
-                $target = $route;
+                $target = $te[0];
                 break;
             } else {
                 $target = "?";
@@ -174,6 +192,18 @@ class ROUTING {
                 $args = array();
             }
         }
+        set_codetracker($caller_region);
         return array("target" => $target, "args" => $args);
     }
+
+    public static function internal_url($path) {
+        $url = APDL_HTTP_WEBROOT . "/";
+        if (!sysvar("url_rewrite")) {
+            $url .= basename(APDL_INDEX_FILE) . "?" . sysvar("url_route_key") . "=";
+        }
+        $url .= $path;
+        return $url;
+    }
 }
+
+log("Routing loaded", Log::L_INFO);

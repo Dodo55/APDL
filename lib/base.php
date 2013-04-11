@@ -17,20 +17,20 @@ Class BASEOBJECT {
             if (isset($this)) {
                 if (!isset($this->__oevents[$event][$fnHash])) {
                     $this->__oevents[$event][$fnHash] = $fn;
-                    LOG::log("New function bound to event \"$event\" on a(n) " . get_class($this) . " object");
+                    LOG::log("New handler bound to event \"$event\" on a(n) " . get_class($this) . " object");
                 } else {
-                    LOG::log("Event \"$event\" on a(n) " . get_class($this) . " object already has the same function bound!", APDL_Log::L_WARNING);
+                    LOG::log("Event \"$event\" on a(n) " . get_class($this) . " object already has the same handler bound!", APDL_Log::L_WARNING);
                 }
             } else {
                 if (!isset(self::$__events[$event][$fnHash])) {
                     self::$__events[$event][$fnHash] = $fn;
-                    LOG::log("New function bound to static event \"$event\" on " . get_called_class());
+                    LOG::log("New handler bound to static event \"$event\" on " . get_called_class());
                 } else {
-                    LOG::log("Static event \"$event\" on " .get_called_class() . " already has the same function bound!", Log::L_WARNING);
+                    LOG::log("Static event \"$event\" on " . get_called_class() . " already has the same handler bound!", Log::L_WARNING);
                 }
             }
         } else {
-            LOG::log("Trying to bind non callable function to event \"$event\"!", Log::L_WARNING);
+            LOG::log("Trying to bind non callable handler to event \"$event\"!", Log::L_WARNING);
         }
     }
 
@@ -43,10 +43,10 @@ Class BASEOBJECT {
             foreach (self::$__events[$event] as $fn) {
                 if (isset($this)) {
                     LOG::log("Event \"$event\" of class: " . get_class($this) . " fired by object: " . spl_object_hash($this));
-                    return call_user_func_array($fn, array_merge(array($this), array_slice(func_get_args(), 1)));
+                    call_user_func_array($fn, array_merge(array($this), array_slice(func_get_args(), 1)));
                 } else {
                     LOG::log("Event \"$event\" of class: " . get_called_class() . " fired statically");
-                    return call_user_func_array($fn, array_merge(array(get_called_class()), array_slice(func_get_args(), 1)));
+                    call_user_func_array($fn, array_merge(array(get_called_class()), array_slice(func_get_args(), 1)));
                 }
             }
         }
@@ -54,11 +54,14 @@ Class BASEOBJECT {
             if (is_array($this->__oevents[$event])) {
                 foreach ($this->__oevents[$event] as $fn) {
                     LOG::log("Event \"$event\" of object " . spl_object_hash($this) . " fired");
-                    return call_user_func_array($fn, array_merge(array($this), array_slice(func_get_args(), 1)));
+                    call_user_func_array($fn, array_merge(array($this), array_slice(func_get_args(), 1)));
                 }
             }
         }
-    return false;
+    }
+
+    public static function __ping(){
+        //Just trigger autoload
     }
 
 }
@@ -85,4 +88,4 @@ class DUMMY extends BASEOBJECT {
     }
 }
 
-?>
+log("Base Objects loaded", Log::L_INFO);

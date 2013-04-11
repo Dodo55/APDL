@@ -49,6 +49,10 @@ class DB_RESULT extends BASEOBJECT {
         return $this->result->num_rows;
     }
 
+    public function get_result(){
+        return $this->result;
+    }
+
 }
 
 function db_querybuilder($conn, $action, $table, $data = array()) {
@@ -103,9 +107,17 @@ function db_querybuilder($conn, $action, $table, $data = array()) {
 function db_filterbuilder($conn, $arr) {
     $filter = $arr[0];
     $vals = $arr[1];
+    if (is_array($vals)) {
+        foreach (array_keys($vals) as $key) {
+            $filter = str_ireplace("{" . $key . "}", $conn->escape($vals[$key]), $filter);
+        }
+        return $filter;
+    }
+    return $filter;
+    /*REGEX Solution proven to be slower
     return preg_replace_callback("#\{(.+?)\}#", function ($matches) use ($vals, $conn) {
         return $conn->escape($vals[$matches[1]]);
-    }, $filter);
+    }, $filter);*/
 }
 
 ?>

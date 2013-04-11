@@ -7,6 +7,10 @@ define("APDL_INTERNALCALL", "I know what I do. You'll let me do it and don't war
  */
 class APDL {
 
+    const IS_RUNNING = true;
+    protected static $BVER, $AUTOLOAD = array();
+    public static $ERRORS = array();
+
     /**
      * @static
      * @var string CODE TRACKER GLOBAL VAR
@@ -28,7 +32,7 @@ class APDL {
      * @static
      * @var array Reserved VAR names
      */
-    private static $reserved_vars = array("__encoders");
+    private static $reserved_vars = array("__encoders", "__session_logging_active");
 
     /**
      * Set APDL Sysvar
@@ -48,7 +52,7 @@ class APDL {
             } else {
                 $vdump = "[" . gettype($val) . "]";
             }
-            log("Setting sysvar $var to value: $vdump");
+            Log::log("Setting sysvar $var to value: $vdump");
         }
     }
 
@@ -72,13 +76,46 @@ class APDL {
 
 
     public static function die_on_fatal() {
-        if (APDL_SYSMODE >= APDL_DEBUG) {
-            Log::dumplog(APDL_OUTPUT_SCREEN, OUTPUT_DIE);
+        if (APDL_LOG_FATALS === true) {
+            Log::dumplog(APDL_OUTPUT_FILE);
+        }
+        if (APDL_SYSMODE >= SYSMODE_DEBUG) {
+            Log::dumplog(APDL_OUTPUT_SCREEN, OUTPUT_DIE_CLEAN);
         } else {
-            if (!sysvar("apdl_dead")) {
-                setvar("apdl_dead", true);
-                handle_safe_die();
+            if (!APDL::sysvar("__apdl_dead", APDL_INTERNALCALL)) {
+                APDL::setvar("__apdl_dead", true, APDL_INTERNALCALL);
+                handle_safe_die(array_pop(self::$ERRORS));
             }
         }
     }
+
+    public static function runtime() {
+        return substr((float)(@microtime(true) - APDL_START_MT), 0, 5);
+    }
+
+    public static function autoload($class) {
+        $class = strtoupper($class);
+        if (!empty(self::$AUTOLOAD[$class])) {
+            $file = self::$AUTOLOAD[$class];
+            require($file);
+            log("Autoloader loaded class '$class'", L_INFO);
+        } else {
+            log("Class '$class' is not registered for autoloading!", L_DEBUG);
+        }
+    }
+
+    public static function register_class($classname, $file) {
+        $classname = strtoupper($classname);
+        self::$AUTOLOAD[$classname] = $file;
+        log("Autoloader registered class '$classname' to be loaded from file '$file'");
+    }
+
+    public static function get_binary_version() {
+        if (empty(self::$BVER)) {
+            self::$BVER = get_binary_version(APDL_VERSION);
+        }
+        return self::$BVER;
+    }
 }
+
+spl_autoload_register('\APDL\APDL::autoload');

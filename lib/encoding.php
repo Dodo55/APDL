@@ -2,6 +2,7 @@
 namespace APDL;
 
 interface APDL_ENCODER {
+
     public function encode($data);
 
     public function decode($data);
@@ -45,20 +46,6 @@ class SB64Encoder implements APDL_ENCODER {
 
 register_encoder("sb64", "\APDL\SB64Encoder");
 
-function register_encoder($name, $class) {
-    $encoders = APDL::Sysvar("__encoders", APDL_INTERNALCALL);
-    if (!is_array($encoders)) {
-        $encoders = array();
-    }
-    $encoders[$name] = new $class;
-    APDL::Setvar("__encoders", $encoders, APDL_INTERNALCALL);
-    log("Encoder $class registered", L_INFO);
-}
 
-function get_encoder($name) {
-    $encoders = sysvar("__encoders");
-    if (!isset($encoders[$name]) || !is_object($encoders[$name])) {
-        log("Requesting invalid encoder!", L_FATAL);
-    }
-    return $encoders[$name];
-}
+
+log("Encoders Loaded", Log::L_INFO);

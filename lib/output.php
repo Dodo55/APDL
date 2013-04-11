@@ -1,5 +1,8 @@
 <?php
 namespace APDL;
+
+HTTP::__ping();
+
 abstract class OUTPUT {
     protected $skeleton, $elements;
     const eseparator = "\n";
@@ -32,7 +35,7 @@ abstract class OUTPUT {
             }
         }
         //Delete remaining empty elements
-        $out=preg_replace("%{#.*?}%","",$out);
+        $out = preg_replace("%{#.*?}%", "", $out);
 
         if ($mode == OUTPUT_DIE_CLEAN) {
             if (ob_get_level() > 0) {
@@ -51,10 +54,8 @@ class HTML5 extends OUTPUT {
 <!DOCTYPE html>
 <html>
     <head>
-        <meta charset="{#charset}" />
-        <title>{#title}</title>
-        <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
         {#head}
+        <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
     </head>
     <body>
         {#body}
@@ -63,10 +64,9 @@ class HTML5 extends OUTPUT {
 EOT;
 
     public function __construct() {
-        $this->elements['charset'] = 'utf-8';
         $this->elements['head'] = array();
         $this->elements['body'] = array();
-        $this->elements['title']="";
+        $this->charset("utf-8");
     }
 
     public function scriptlink($src) {
@@ -90,6 +90,43 @@ EOT;
     }
 
     public function charset($charset) {
-        $this->charset = $charset;
+        $this->head[] = "<meta charset=\"$charset\" />";
     }
+
+    public function title($title) {
+        $this->head[] = "<title>$title</title>";
+    }
+
+
+    public function attach_debugger() {
+        APDL::Setvar("__session_logging_active", true, APDL_INTERNALCALL);
+        $this->meta("apdl_sr", HTTP::webpath(APDL_SYSROOT));
+        $this->meta("apdl_rk", HTTP::get_request_key());
+        $this->meta("apdl_sid", \session_id());
+        $this->scriptlink(webpath(APDL_SYSROOT . "/assets/js/debug.js"));
+        $this->css(webpath(APDL_SYSROOT . "/assets/css/debugger.css"));
+        $this->body[] = str_replace("__SYSROOT__", webpath(APDL_SYSROOT), file_get_contents(APDL_SYSROOT . "/assets/html/debugger.html"));
+        if (APDL_SYSMODE >= SYSMODE_DEBUG_BACKTRACE) {
+            $this->scriptlink(webpath(APDL_SYSROOT . "/assets/js/backtrace.js"));
+        }
+    }
+
+
+    public static function inject_debugger($html) {
+        //Check if valid HTML and get head + body
+        if (preg_match("#<html>.*?<head.*?>(.+?)</head>.*?<body.*?>(.+?)</body>.*?</html>#ims", $html, $matches)) {
+            $head = $matches[1];
+            $body = $matches[2];
+            $debugger = new static;
+            $debugger->body = array($body);
+            $debugger->head[] = $head;
+            $debugger->attach_debugger();
+            return $debugger->render();
+        }
+        log("Inject debugger: invalid HTML input given", L_WARNING);
+        return false;
+    }
+
 }
+
+log("Output generator & HTML5 output class loaded", Log::L_INFO);

@@ -1,0 +1,135 @@
+#apdl_debugger_bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #001020;
+    height: 40px;
+    line-height: 40px;
+    color: white;
+    text-align: center;
+    z-index: 55005;
+    box-shadow: 0px 0px 10px #000;
+    border-top: 1px solid white;
+    font-family: sans-serif;
+}
+
+#apdl_debugger_toggle {
+    height: 40px;
+    border-left: 1px solid white;
+    display: block;
+    line-height: 20px;
+    font-size: 10pt;
+    font-weight: bold;
+    padding: 10px;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
+#apdl_debugger_runtime {
+    display: inline-block;
+}
+
+#apdl_debugger_toggle:hover {
+    cursor: pointer;
+    cursor: hand;
+    background: #004488;
+}
+
+#apdl_debugger_log_wrapper {
+    z-index: 55000;
+    position: fixed;
+    left: 0;
+    bottom: 40px;
+    height: 90%;
+    width: 100%;
+    display: table-cell;
+    vertical-align: bottom;
+}
+
+#apdl_log_header, #apdl_log, #apdl_debugger_toggle {
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+
+#apdl_log_header, #apdl_log {
+    position: relative;
+    width: 80%;
+    margin: auto;
+    padding: 15px;
+    box-shadow: 0px 0px 10px #000;
+}
+
+#apdl_log_header {
+    z-index: 55003;
+    background: white;
+    color: #048;
+    font-family: sans-serif;
+    font-weight: bold;
+    border-radius: 10px 10px 0 0;
+    height: 30px;
+    padding: 7px;
+    font-size: 10pt;
+}
+
+#apdl_log {
+    border: 1px solid white;
+    z-index: 55002;
+    background: #001020;
+    padding: 15px;
+    overflow: scroll;
+    border-top: 0;
+    font-family: monospace;
+    height: 100%;
+    padding-bottom: 40px;
+}
+
+#apdl_log table {
+    border: 0
+}
+
+#apdl_log td:first-child {
+    min-width: 150px;
+}
+
+#apdl_log td {
+    vertical-align: top
+}
+
+#apdl_log .level_1 td {
+    color: red;
+    font-weight: bold;
+}
+
+#apdl_log .level_2 td {
+    color: #F60;
+}
+
+#apdl_log .level_3 td {
+    color: yellow;
+}
+
+#apdl_log .level_4 td {
+    color: white;
+}
+
+#apdl_log .level_5 td {
+    color: #0AF;
+}
+
+#apdl_log .level_6 td {
+    color: lime;
+}
+
+#apdl_log .backtrace {
+    display: none
+}
+
+#apdl_debugger_bottom_spacer{
+    width: 100%;
+    height: 41px;
+    background: transparent;
+    border: 0;
+}

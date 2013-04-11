@@ -8,13 +8,13 @@ class DB_RECORD extends BASEOBJECT {
     protected $__dbtable, $__recdata = array(), $__efields = array();
     public $__exists = false, $__key;
 
-    public function __construct($data) {
+    public function __construct($data = array()) {
         $this->__dbtable = static::$__table;
         if (is_array($data)) {
             $this->__recdata = (array)$data;
-        } else {
-            $res = call_user_func_array(array(__CLASS__, "Get"), func_get_args())->One(true);
-
+        } elseif (func_get_arg(0) != "" || func_get_arg(0) === 0 || func_get_arg(0) == "0") {
+            $args = array_replace(array("", "", "", "1"), func_get_args());
+            $res = call_user_func_array(array(get_called_class(), "Get"), $args)->One(true);
             $this->__recdata = $res;
             if (is_array($res) && !empty($res)) {
                 $this->MarkAsExisting();
@@ -24,7 +24,9 @@ class DB_RECORD extends BASEOBJECT {
 
     public function MarkAsExisting() {
         $this->__exists = true;
-        $this->__key = $this->{$this->GetPKField()};
+        if ($this->GetPKField()) {
+            $this->__key = $this->{$this->GetPKField()};
+        }
     }
 
     public static function From($table) {
@@ -38,9 +40,8 @@ class DB_RECORD extends BASEOBJECT {
                 $pk = $db->get_pkey(static::$__table);
                 if ($pk) {
                     $col = $pk;
-                } else {
-                    log("No primary key column in table '" . static::$__table . "', cannot query without specifying selector column!", L_ERROR);
-                    return new DUMMY;
+                } elseif ($val) {
+                    return new DUMMY("No primary key column in table '" . static::$__table . "', cannot query without specifying selector column!", L_ERROR);
                 }
             }
             if ($val) {
@@ -55,7 +56,11 @@ class DB_RECORD extends BASEOBJECT {
         } else {
             $res = FALSE;
         }
-        return new DB_RESULT($res, __CLASS__);
+        return new DB_RESULT($res, get_called_class());
+    }
+
+    public static function All($order = "", $limit = "", $index = false) {
+        return static::Get("", false, $order, $limit)->multi();
     }
 
     public static function Where($where, $values, $order = "", $limit = "") {
@@ -64,7 +69,7 @@ class DB_RECORD extends BASEOBJECT {
             "order" => $order,
             "limit" => $limit
         )));
-        return new DB_RESULT($res, __CLASS__);
+        return new DB_RESULT($res, get_called_class());
     }
 
     public function &__get($var) {
@@ -74,13 +79,11 @@ class DB_RECORD extends BASEOBJECT {
             return $this->__recdata[$var];
         }
         log("No column '$var' in table $this->__dbtable", L_ERROR);
-        return false;
+        $ret = false;
+        return $ret;
     }
 
     public function __set($var, $val) {
-        if (!is_array($this->__recdata)) {
-            log(print_r($this->__recdata, 1), L_FATAL);
-        }
         if (db_get_active()->check_field($this->__dbtable, $var)) {
             if (isset($this->__efields[$var])) {
                 $this->__efields[$var][1] = $val;
@@ -92,33 +95,55 @@ class DB_RECORD extends BASEOBJECT {
         }
     }
 
-    public function &__exposedata() {
+    public function Fill($input) {
+        if (is_array($input)) {
+            foreach ($input as $var => $val) {
+                if (db_get_active()->check_field($this->__dbtable, $var)) {
+                    if (isset($this->__efields[$var])) {
+                        $this->__efields[$var][1] = $val;
+                    } else {
+                        $this->__recdata[$var] = $val;
+                    }
+                }
+            }
+        } else {
+            log("Trying to fill record with invalid input (input must be an associative array)");
+        }
+    }
+
+    public
+    function &__exposedata() {
         return $this->__recdata;
     }
 
-    public function GetPKField() {
+    public
+    function GetPKField() {
         return db_get_active()->get_pkey($this->__dbtable);
     }
 
-    public function Exists() {
+    public
+    function Exists() {
         return $this->__exists;
     }
 
-    public function Save() {
+    public
+    function Save() {
         $db = db_get_active();
         foreach ($this->__efields as $field => $data) {
             $encoder = get_encoder($data[0]);
             $this->__recdata[$field] = $encoder->encode($data[1]);
         }
         if ($this->__exists) {
-            log("Updating existing record with primary key " . $this->__key . " in table " . $db->prefix_table($this->__dbtable));
+            log("Updating existing record with primary key '" . $this->__key . "' in table " . $db->prefix_table($this->__dbtable));
             $db->query(db_querybuilder($db, "update", $this->__dbtable, array(
                 "values" => $this->__recdata,
                 "where" => array(
                     $this->GetRecordSelector(), ""
                 )
             )));
-            $this->__key = $this->{$this->GetPKField()};
+            if ($this->GetPKField()) {
+                $this->__key = $this->{$this->GetPKField()};
+            }
         } else {
             $db->query(db_querybuilder($db, "insert", $this->__dbtable, $this->__recdata));
             $ak = $db->get_resource()->insert_id;
@@ -146,7 +171,8 @@ class DB_RECORD extends BASEOBJECT {
         }
     }
 
-    public function GetRecordSelector() {
+    public
+    function GetRecordSelector() {
         if ($this->GetPKField()) {
             return "`" . $this->GetPKField() . "` = '" . db_get_active()->escape($this->__key) . "'";
         } else {
@@ -159,7 +185,8 @@ class DB_RECORD extends BASEOBJECT {
         }
     }
 
-    public function EncField($field, $default = false, $encoding = "json") {
+    public
+    function EncField($field, $default = false, $encoding = "json") {
         $encoder = get_encoder($encoding);
 
         if ($this->Exists() && $encoder->check($this->__recdata[$field])) {
@@ -173,13 +200,16 @@ class DB_RECORD extends BASEOBJECT {
         $this->__efields[$field] = array($encoding, $data);
     }
 
-    public static function Insert($data) {
-        $class = __CLASS__;
+    public
+    static function Insert($data) {
+        $class = get_called_class();
         $new = new $class($data);
         $new->save();
         return $new;
     }
-
 }
+
+//Trigger autoload of db_utils
+$null = new DB_RESULT("", "");
 
 ?>

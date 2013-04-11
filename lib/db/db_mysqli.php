@@ -8,7 +8,7 @@ namespace APDL;
 class DB_MYSQLi extends DB_CONNECTION {
 
     public $type = "MySQLi", $state = 0, $prefix = "";
-    private $conn, $pkcache;
+    private $conn, $pkcache = array();
 
     public function __construct($host, $user, $pass, $db, $prefix = "") {
         $connect_persistent = sysvar("mysqli_persistent");
@@ -60,14 +60,16 @@ class DB_MYSQLi extends DB_CONNECTION {
     }
 
     public function get_pkey($table) {
-        if (!isset($this->pkcache[$table]) || !$this->pkcache[$table]) {
+        if (!array_key_exists($table, $this->pkcache)) {
             $res = $this->fetch($this->query("SHOW KEYS FROM {$this->prefix_table($table)} WHERE Key_name = 'PRIMARY'"));
             $this->pkcache[$table] = $res['Column_name'];
+        }
+        if (!$this->pkcache[$table]) {
+            return false;
         }
 
         return $this->pkcache[$table];
     }
-
 
 
     protected function map_table($table) {
