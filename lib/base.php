@@ -19,7 +19,7 @@ Class BASEOBJECT {
                     $this->__oevents[$event][$fnHash] = $fn;
                     LOG::log("New handler bound to event \"$event\" on a(n) " . get_class($this) . " object");
                 } else {
-                    LOG::log("Event \"$event\" on a(n) " . get_class($this) . " object already has the same handler bound!", APDL_Log::L_WARNING);
+                    LOG::log("Event \"$event\" on a(n) " . get_class($this) . " object already has the same handler bound!", Log::L_WARNING);
                 }
             } else {
                 if (!isset(self::$__events[$event][$fnHash])) {
