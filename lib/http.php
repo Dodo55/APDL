@@ -31,12 +31,3 @@ class HTTP extends BASEOBJECT {
 }
 
 log("HTTP Library loaded", Log::L_INFO);
-if (!defined("APDL_HTTP_WEBROOT")) {
-    define("APDL_HTTP_WEBROOT", HTTP::find_webroot());
-    log("Detected webroot is: " . APDL_HTTP_WEBROOT, L_INFO);
-} else {
-    log("Using preconfigured webroot: " . APDL_HTTP_WEBROOT, L_INFO);
-}
-if (!defined("APDL_HTTP_SELFURL")) {
-    define("APDL_HTTP_SELFURL",APDL_PROTOCOL."://".APDL_SERVER_HOST.APDL_HTTP_REQUEST);
-}

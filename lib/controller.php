@@ -1,20 +1,43 @@
 <?php
 namespace APDL;
 
-class Controller {
-    protected $__file, $__base, $__args = array(), $__valid = false, $__methods, $logident;
+class ControllerBase {
+    protected $host;
 
-    public function __construct($file, $args = array()) {
+    public function __construct($host) {
+        $this->host = $host;
+    }
+
+    protected function arg($arg) {
+        return $this->host->arg($arg);
+    }
+
+    protected function sublink($args) {
+        return $this->host->sublink($args);
+    }
+}
+
+class Controller {
+    protected $__file, $__base, $__args = array(), $__valid = false, $__methods, $__logident, $__module = false, $__instance = false;
+
+    public function __construct($routeinfo, $args = array()) {
+        if (is_array($routeinfo)) {
+            $args = $routeinfo['args'];
+            $file = $routeinfo['target'];
+        } else {
+            $file = $routeinfo;
+        }
         $this->__args = $args;
         $this->__base = $file;
         if (substr($file, 0, 4) == "[FS]") {
             $this->__file = substr($file, 4);
-            $this->logident = "FS: " . basename($file);
+            $this->__logident = "FS: " . basename($file);
         } elseif ($file != "" && $file != "?") {
             list($mod, $fn) = explode("/", $file, 2);
-            $moddir = MODULESTORE::load_module($mod);
+            $this->__module = MODULESTORE::load_module($mod);
+            $moddir = $this->__module->getdir();
             $this->__file = $moddir . "/controller/" . $fn . ".php";
-            $this->logident = $file;
+            $this->__logident = $file;
         } else {
             log("No controller path given!", L_ERROR);
         }
@@ -28,6 +51,10 @@ class Controller {
 
     public function base() {
         return $this->__base;
+    }
+
+    public function get_module() {
+        return $this->__module;
     }
 
     public function sublink($args) {
@@ -56,29 +83,56 @@ class Controller {
     }
 
     public
-    function run() {
+    function run($args = false) {
         if ($this->__valid) {
-            $caller_region = APDL::$CTRACK;
-            set_codetracker($this->logident);
-            ob_start();
-            $_this =& $this;
-            include ($this->__file);
-            $ob = ob_get_clean();
-            if (!empty($this->__args)) {
-                $action = array_shift(@array_values($this->__args));
+            //Overwrite args if they're specified in call
+            if (is_array($args)) {
+                $this->__args = $args;
             }
-            if (!empty($action) && isset($this->__methods[$action]) && is_callable($this->__methods[$action]) && strpos($action, "_") === false) {
-                ob_start();
-                $this->__methods[$action](array_slice($this->__args, 1));
-                $ob .= ob_get_clean();
-            } elseif (isset($this->__methods["index"]) && is_callable($this->__methods["index"])) {
-                ob_start();
-                $this->__methods["index"]($this->__args);
-                $ob .= ob_get_clean();
+            $caller_region = APDL::$CTRACK;
+            set_codetracker($this->__logident);
+            $interrupted = false;
+            ob_start();
+            //Check and run modulewide interrupt fn if exists
+            if ($this->__module && is_callable($this->__module->interrupt)) {
+                $interrupted = $this->__module->interrupt();
+            }
+            //Run controller if it was not interrupted by the host module
+            if (!$interrupted) {
+                $_this =& $this;
+                include ($this->__file);
+                $ob = ob_get_clean();
+                if (!empty($this->__args)) {
+                    $action = array_shift(@array_values($this->__args));
+                }
+                if ($this->__instance) {
+                    //If we have a class based controller
+                    if (!empty($action) && method_exists($this->__instance, $action)) {
+                        ob_start();
+                        $this->__instance->$action(array_slice($this->__args, 1));
+                        $ob .= ob_get_clean();
+                    } elseif (method_exists($this->__instance, "index")) {
+                        ob_start();
+                        $this->__instance->index($this->__args);
+                        $ob .= ob_get_clean();
+                    }
+                } else {
+                    //If we have an anonymous controller
+                    if (!empty($action) && isset($this->__methods[$action]) && is_callable($this->__methods[$action]) && strpos($action, "_") === false) {
+                        ob_start();
+                        $this->__methods[$action](array_slice($this->__args, 1));
+                        $ob .= ob_get_clean();
+                    } elseif (isset($this->__methods["index"]) && is_callable($this->__methods["index"])) {
+                        ob_start();
+                        $this->__methods["index"]($this->__args);
+                        $ob .= ob_get_clean();
+                    }
+                }
             }
             set_codetracker($caller_region);
             return $ob;
         } else {
+            log("Trying to run invalid controller '$this->__file'!", L_ERROR, APDL_E_CONTROLLER_NOT_EXISTS);
             return false;
         }
     }

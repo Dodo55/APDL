@@ -9,7 +9,7 @@ class MODULESTORE {
         self::$moddirs[] = $dir;
     }
 
-    public static function load_module($mod, $minbver = 0) {
+    public static function load_module($mod, $minbver = 0, $args = array()) {
         if (empty(self::$modules[$mod])) {
             log("Trying to load module '$mod'...");
             $notfound = true;
@@ -24,22 +24,24 @@ class MODULESTORE {
                 log("Can't find module: $mod!", L_FATAL, APDL_E_MODULE_NOT_FOUND);
             }
             self::$modules[$mod] = $mod; //Prevent recursive loading if it would happen during initialization
-            self::$modules[$mod] = new MODULE($mod, $file, $minbver);
+            self::$modules[$mod] = new MODULE($mod, $file, $minbver, $args);
         }
-        return self::$modules[$mod]->getdir();
+        return self::$modules[$mod];
     }
+
 }
 
 MODULESTORE::add_dir(APDL_SYSROOT . "/mod");
 
 class MODULE {
     protected $dir, $name, $dname, $version, $binary_version, $init, $state;
+    public $interrupt;
 
     public function getdir() {
         return $this->dir;
     }
 
-    public function __construct($dname, $file, $minbver = 0) {
+    public function __construct($dname, $file, $minbver = 0, $args = array()) {
         $this->dname = $dname;
         $this->dir = dirname($file);
         require($file);
@@ -54,7 +56,7 @@ class MODULE {
                 if ($minbver <= $this->binary_version) {
                     $pct = APDL::$CTRACK;
                     set_codetracker($dname);
-                    call_user_func($this->init);
+                    call_user_func($this->init, $args);
                     set_codetracker($pct);
                     log("Loaded module: '$this->name' ($this->dname)", L_INFO);
                 } else {

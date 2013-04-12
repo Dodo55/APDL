@@ -25,7 +25,7 @@ error_reporting(0);
 
 //Basic constants
 define("APDL_SYSROOT", realpath(__DIR__)); //DO NOT DISTURB
-define("APDL_VERSION", "alpha 0.0.1-16");
+define("APDL_VERSION", "alpha 0.0.2-0");
 
 //Load system core
 require(APDL_SYSROOT . "/sys/const.php");
@@ -81,6 +81,7 @@ function init() {
     APDL::register_class("APDL\\HTML5", APDL_SYSROOT . "/lib/output.php");
     APDL::register_class("APDL\\ROUTING", APDL_SYSROOT . "/lib/routing.php");
     APDL::register_class("APDL\\CONTROLLER", APDL_SYSROOT . "/lib/controller.php");
+    APDL::register_class("APDL\\ContollerBase", APDL_SYSROOT . "/lib/controller.php");
     APDL::register_class("APDL\\MODULESTORE", APDL_SYSROOT . "/lib/mod.php");
     APDL::register_class("APDL\\MODULE", APDL_SYSROOT . "/lib/mod.php");
     APDL::register_class("APDL\\DBCONF", APDL_SYSROOT . "/lib/dbconf.php");
@@ -118,6 +119,16 @@ function load($config = APDL_DEFAULT_CONFIG_FILE) {
     } else {
         log("Logging level set to:" . $ll, L_INFO);
         log("Setting timezone to: " . sysvar("default_timezone"), L_INFO);
+    }
+
+    if (!defined("APDL_HTTP_WEBROOT")) {
+        define("APDL_HTTP_WEBROOT", HTTP::find_webroot());
+        log("Detected webroot is: " . APDL_HTTP_WEBROOT, L_INFO);
+    } else {
+        log("Using preconfigured webroot: " . APDL_HTTP_WEBROOT, L_INFO);
+    }
+    if (!defined("APDL_HTTP_SELFURL")) {
+        define("APDL_HTTP_SELFURL", APDL_PROTOCOL . "://" . APDL_SERVER_HOST . APDL_HTTP_REQUEST);
     }
 
     set_codetracker($ctmem);

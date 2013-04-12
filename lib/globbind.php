@@ -70,8 +70,8 @@ function apdl_db_get_active() {
     return \APDL\CONNECTION_MANAGER::get_active();
 }
 
-function apdl_load_module($mod, $mbv = 0) {
-    \APDL\MODULESTORE::load_module($mod, $mbv);
+function apdl_load_module($mod, $mbv = 0,$args) {
+    \APDL\MODULESTORE::load_module($mod, $mbv,$args);
 }
 
 function apdl_add_route($route, $target) {
