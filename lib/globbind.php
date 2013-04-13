@@ -70,7 +70,7 @@ function apdl_db_get_active() {
     return \APDL\CONNECTION_MANAGER::get_active();
 }
 
-function apdl_load_module($mod, $mbv = 0,$args) {
+function apdl_load_module($mod, $mbv = 0,$args=array()) {
     \APDL\MODULESTORE::load_module($mod, $mbv,$args);
 }
 

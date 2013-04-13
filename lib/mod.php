@@ -3,7 +3,7 @@ namespace APDL;
 
 class MODULESTORE {
     //Init default
-    protected static $modules, $moddirs = array();
+    protected static $modules, $moddirs = array(), $pending = array();
 
     public static function add_dir($dir) {
         self::$moddirs[] = $dir;
@@ -23,8 +23,8 @@ class MODULESTORE {
             if ($notfound) {
                 log("Can't find module: $mod!", L_FATAL, APDL_E_MODULE_NOT_FOUND);
             }
-            self::$modules[$mod] = $mod; //Prevent recursive loading if it would happen during initialization
             self::$modules[$mod] = new MODULE($mod, $file, $minbver, $args);
+            self::$modules[$mod]->initialize();
         }
         return self::$modules[$mod];
     }
@@ -34,7 +34,7 @@ class MODULESTORE {
 MODULESTORE::add_dir(APDL_SYSROOT . "/mod");
 
 class MODULE {
-    protected $dir, $name, $dname, $version, $binary_version, $init, $state;
+    protected $dir, $name, $dname, $version, $binary_version, $init, $state, $loadargs;
     public $interrupt;
 
     public function getdir() {
@@ -44,6 +44,14 @@ class MODULE {
     public function __construct($dname, $file, $minbver = 0, $args = array()) {
         $this->dname = $dname;
         $this->dir = dirname($file);
+        $this->loadargs = array($dname, $file, $minbver, $args);
+    }
+
+    public function initialize() {
+        $dname = $this->loadargs[0];
+        $file = $this->loadargs[1];
+        $minbver = $this->loadargs[2];
+        $args = $this->loadargs[3];
         require($file);
         if (empty($this->binary_version)) {
             $this->binary_version = get_binary_version($this->version);
