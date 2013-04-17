@@ -8,6 +8,7 @@ class DB_RECORD extends BASEOBJECT {
     protected $__dbtable, $__recdata = array(), $__efields = array();
     public $__exists = false, $__key;
 
+    //Override with "call_user_func_array(array($this, 'parent::__construct'), func_get_args());" !
     public function __construct($data = array()) {
         $this->__dbtable = static::$__table;
         if (is_array($data)) {
@@ -65,11 +66,15 @@ class DB_RECORD extends BASEOBJECT {
 
     public static function Where($where, $values, $order = "", $limit = "") {
         $db = db_get_active();
-        $res = $db->query(db_querybuilder(db_get_active(), "select", static::$__table, array("where" => array($where, $values),
-            "order" => $order,
-            "limit" => $limit
-        )));
-        return new DB_RESULT($res, get_called_class());
+        if ($db) {
+            $res = $db->query(db_querybuilder(db_get_active(), "select", static::$__table, array("where" => array($where, $values),
+                "order" => $order,
+                "limit" => $limit
+            )));
+            return new DB_RESULT($res, get_called_class());
+        } else {
+            return FALSE;
+        }
     }
 
     public function &__get($var) {
@@ -189,7 +194,7 @@ class DB_RECORD extends BASEOBJECT {
     function EncField($field, $default = false, $encoding = "json") {
         $encoder = get_encoder($encoding);
 
-        if ($this->Exists() && $encoder->check($this->__recdata[$field])) {
+        if (!empty($this->__recdata[$field]) && $encoder->check($this->__recdata[$field])) {
             $data = $encoder->decode($this->__recdata[$field]);
         } else {
             if ($default === false) {

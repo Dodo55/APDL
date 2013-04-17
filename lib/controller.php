@@ -85,6 +85,8 @@ class Controller {
     public
     function run($args = false) {
         if ($this->__valid) {
+            //Log controller running
+            log("---Running controller '".$this->__base."'---",L_INFO);
             //Overwrite args if they're specified in call
             if (is_array($args)) {
                 $this->__args = $args;
@@ -128,8 +130,12 @@ class Controller {
                         $ob .= ob_get_clean();
                     }
                 }
+            }else{
+                log("Module ".$this->__module->name." has interrupted the starting of the controller!",L_WARNING);
             }
             set_codetracker($caller_region);
+            //Log controller running
+            log("---Controller '".$this->__base."' has finished running---",L_INFO);
             return $ob;
         } else {
             log("Trying to run invalid controller '$this->__file'!", L_ERROR, APDL_E_CONTROLLER_NOT_EXISTS);

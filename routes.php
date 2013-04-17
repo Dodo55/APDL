@@ -7,4 +7,3 @@
  */
 
 //apdl_add_route("example/{strictarg}/[optarg]","module/controller?fixarg=value");
-

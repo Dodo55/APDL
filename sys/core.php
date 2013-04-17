@@ -1,6 +1,6 @@
 <?php
 namespace APDL;
-define("APDL_INTERNALCALL", "I know what I do. You'll let me do it and don't warn me about any unusual.");
+define("APDL_INTERNALCALL", "Leave me alone, I know what I'm doing!");
 /**
  * @class APDL
  * APDL Core
