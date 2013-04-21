@@ -25,7 +25,7 @@ error_reporting(0);
 
 //Basic constants
 define("APDL_SYSROOT", realpath(__DIR__)); //DO NOT DISTURB
-define("APDL_VERSION", "alpha 0.0.3-0");
+define("APDL_VERSION", "alpha 0.0.3-1");
 
 //Load system core
 require(APDL_SYSROOT . "/sys/const.php");
@@ -72,11 +72,12 @@ function init() {
     //Register classes
     log("Registering system classes...", L_INFO);
     APDL::register_class("APDL\\HTTP", APDL_SYSROOT . "/lib/http.php");
-    APDL::register_class("APDL\\CONNECTION_MANAGER", APDL_SYSROOT . "/lib/db/db_connection.php");
-    APDL::register_class("APDL\\DB_CONNECTION", APDL_SYSROOT . "/lib/db/db_connection.php");
-    APDL::register_class("APDL\\DB_MySQLi", APDL_SYSROOT . "/lib/db/db_mysqli.php");
-    APDL::register_class("APDL\\DB_RECORD", APDL_SYSROOT . "/lib/db/db_record.php");
-    APDL::register_class("APDL\\DB_RESULT", APDL_SYSROOT . "/lib/db/db_utils.php");
+    APDL::register_class("APDL\\CONNECTION_MANAGER", APDL_SYSROOT . "/lib/db/db.php");
+    APDL::register_class("APDL\\DB_CONNECTION", APDL_SYSROOT . "/lib/db/db.php");
+    APDL::register_class("APDL\\DB_MySQLi", APDL_SYSROOT . "/lib/db/db.php");
+    APDL::register_class("APDL\\DB_RECORD", APDL_SYSROOT . "/lib/db/db.php");
+    APDL::register_class("APDL\\DB_RESULT", APDL_SYSROOT . "/lib/db/db.php");
+    APDL::register_class("APDL\\DB_RELATIONSTORE", APDL_SYSROOT . "/lib/db/db.php");
     APDL::register_class("APDL\\OUTPUT", APDL_SYSROOT . "/lib/output.php");
     APDL::register_class("APDL\\HTML5", APDL_SYSROOT . "/lib/output.php");
     APDL::register_class("APDL\\ROUTING", APDL_SYSROOT . "/lib/routing.php");
