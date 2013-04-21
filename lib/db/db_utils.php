@@ -49,7 +49,7 @@ class DB_RESULT extends BASEOBJECT {
         return $this->result->num_rows;
     }
 
-    public function get_result(){
+    public function get_result() {
         return $this->result;
     }
 
@@ -102,6 +102,29 @@ function db_querybuilder($conn, $action, $table, $data = array()) {
         }
     }
     return $query;
+}
+
+class DB_RELATIONSTORE {
+    protected $instances = array();
+    protected $class;
+
+    public function getClass() {
+        return $this->class;
+    }
+
+    public function __construct($class) {
+        $this->class = $class;
+    }
+
+    public function &get($key) {
+        if (empty($this->instances[$key])) {
+            $this->instances[$key] = new $this->class($key);
+        }
+        if (!$this->instances[$key]->Exists()) {
+            log("The associated record doesn't exist! (Class: $this->class, Key: $key)", L_WARNING);
+        }
+        return $this->instances[$key];
+    }
 }
 
 function db_filterbuilder($conn, $arr) {

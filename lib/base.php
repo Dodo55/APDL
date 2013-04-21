@@ -60,7 +60,7 @@ Class BASEOBJECT {
         }
     }
 
-    public static function __ping(){
+    public static function __ping() {
         //Just trigger autoload
     }
 
@@ -72,13 +72,13 @@ class DUMMY extends BASEOBJECT {
     public function __construct($err = "", $elev = L_WARNING) {
         $this->err = $err;
         $this->elev = $elev;
+        if ($err) {
+            apdl_log($err, $elev);
+        }
     }
 
     public function __call($fn, $args) {
         log("Method $fn called on failsafe dummy object");
-        if ($this->err) {
-            log($this->err, $this->elev);
-        }
         return FALSE;
     }
 

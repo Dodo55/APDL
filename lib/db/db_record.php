@@ -4,7 +4,7 @@ namespace APDL;
 
 class DB_RECORD extends BASEOBJECT {
 
-    protected static $__table;
+    protected static $__table, $__related = array(), $__expanded = array();
     protected $__dbtable, $__recdata = array(), $__efields = array();
     public $__exists = false, $__key;
 
@@ -20,6 +20,9 @@ class DB_RECORD extends BASEOBJECT {
             if (is_array($res) && !empty($res)) {
                 $this->MarkAsExisting();
             }
+        }
+        foreach (static::$__expanded as $field => $expdata) {
+            $this->EncField($field, $expdata[0], $expdata[1]);
         }
     }
 
@@ -78,6 +81,9 @@ class DB_RECORD extends BASEOBJECT {
     }
 
     public function &__get($var) {
+        if (!empty(static::$__related[$var])) {
+            return static::$__related[$var]->get($this->__recdata[$var]);
+        }
         if (isset($this->__efields[$var])) {
             return $this->__efields[$var][1];
         } elseif (db_get_active()->check_field($this->__dbtable, $var)) {
@@ -90,7 +96,14 @@ class DB_RECORD extends BASEOBJECT {
 
     public function __set($var, $val) {
         if (db_get_active()->check_field($this->__dbtable, $var)) {
-            if (isset($this->__efields[$var])) {
+            if (isset(static::$__related[$var]) && is_object($val) && is_subclass_of($val, "\\APDL\\DB_RECORD")) {
+                if (get_class($val) == static::$__related[$var]->getClass()) {
+                    $this->__recdata[$var] = $val->__key;
+                } else {
+                    log("Trying to assign a wrong type of related record! Expected: " . static::$__related[$var]->getClass() .
+                        " Got: " . get_class($val), L_ERROR);
+                }
+            } elseif (isset($this->__efields[$var])) {
                 $this->__efields[$var][1] = $val;
             } else {
                 $this->__recdata[$var] = $val;
@@ -126,9 +139,21 @@ class DB_RECORD extends BASEOBJECT {
         return db_get_active()->get_pkey($this->__dbtable);
     }
 
+    public static function SGetPKField() {
+        return db_get_active()->get_pkey(static::$__table);
+    }
+
     public
     function Exists() {
         return $this->__exists;
+    }
+
+    public function Copy() {
+        $copy = new static($this->__recdata);
+        if ($pk = $this->GetPKField()) {
+            $copy->$pk = null;
+        }
+        return $copy;
     }
 
     public
@@ -203,6 +228,22 @@ class DB_RECORD extends BASEOBJECT {
             $data = $default;
         }
         $this->__efields[$field] = array($encoding, $data);
+    }
+
+    public static function Relate($field, $class) {
+        if (is_subclass_of(new $class, "\\APDL\\DB_RECORD")) {
+            if ($class::SGetPKField()) {
+                static::$__related[$field] = new DB_RELATIONSTORE($class);
+            } else {
+                apdl_log("Classes pointing to tables without a primary key cannot be used as relation mapping targets!", L_ERROR);
+            }
+        } else {
+            apdl_log("$class is not a subclass of \\APDL\\DB_RECORD and because of this cannot be used as a relation mapping target class!", L_ERROR);
+        }
+    }
+
+    public static function Expand($field, $default = false, $encoding = "json") {
+        static::$__expanded[$field] = array($default, $encoding);
     }
 
     public
