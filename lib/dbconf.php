@@ -1,10 +1,8 @@
 <?php
 namespace APDL;
 class DBCONF extends DB_RECORD {
-    public function __construct($data=array()){
-        call_user_func_array(array($this, 'parent::__construct'), func_get_args());
-        $this->EncField("val");
-    }
+    protected static $__expanded;
+
     public static function load($table = false) {
         if (!$table) {
             $table = sysvar("dbconf_table");
@@ -16,8 +14,11 @@ class DBCONF extends DB_RECORD {
                 setvar($var->var, $var->val);
             }
         } else {
-            log("Database error, cannot load configuration from database",L_ERROR);
+            log("Database error, cannot load configuration from database", L_ERROR);
         }
     }
 }
+
+DBCONF::Expand("val");
+
 log("Database based configuration parser loaded", Log::L_INFO);
