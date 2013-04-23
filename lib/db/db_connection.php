@@ -58,6 +58,9 @@ abstract class DB_CONNECTION {
     }
 
     public function check_field($table, $field) {
+        if (APDL_SYSMODE < SYSMODE_DEBUG) {
+            return true;
+        }
         if (isset($this->tablemap[$table])) {
             if (in_array(strtolower($field), $this->tablemap[$table])) {
                 return true;

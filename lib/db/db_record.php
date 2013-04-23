@@ -4,7 +4,7 @@ namespace APDL;
 
 class DB_RECORD extends BASEOBJECT {
 
-    protected static $__table, $__related = array(), $__expanded = array();
+    protected static $__table; //Removed to force redeclaration: $__related = array(), $__expanded = array();
     protected $__dbtable, $__recdata = array(), $__efields = array();
     public $__exists = false, $__key;
 
@@ -21,8 +21,10 @@ class DB_RECORD extends BASEOBJECT {
                 $this->MarkAsExisting();
             }
         }
-        foreach (static::$__expanded as $field => $expdata) {
-            $this->EncField($field, $expdata[0], $expdata[1]);
+        if (property_exists(get_called_class(), "__expanded")) {
+            foreach (static::$__expanded as $field => $expdata) {
+                $this->EncField($field, $expdata[0], $expdata[1]);
+            }
         }
     }
 
@@ -81,7 +83,7 @@ class DB_RECORD extends BASEOBJECT {
     }
 
     public function &__get($var) {
-        if (!empty(static::$__related[$var])) {
+        if (isset(static::$__related) && !empty(static::$__related[$var])) {
             return static::$__related[$var]->get($this->__recdata[$var]);
         }
         if (isset($this->__efields[$var])) {
@@ -96,7 +98,7 @@ class DB_RECORD extends BASEOBJECT {
 
     public function __set($var, $val) {
         if (db_get_active()->check_field($this->__dbtable, $var)) {
-            if (isset(static::$__related[$var]) && is_object($val) && is_subclass_of($val, "\\APDL\\DB_RECORD")) {
+            if (property_exists(get_called_class(), "__related") && isset(static::$__related[$var]) && is_object($val) && is_subclass_of($val, "\\APDL\\DB_RECORD")) {
                 if (get_class($val) == static::$__related[$var]->getClass()) {
                     $this->__recdata[$var] = $val->__key;
                 } else {
@@ -231,19 +233,31 @@ class DB_RECORD extends BASEOBJECT {
     }
 
     public static function Relate($field, $class) {
+        if (!property_exists(get_called_class(), "__related")) {
+            log("To use relations on this class('" . get_called_class() . "'), 'protected static \$__related' must be declared in it!", L_ERROR);
+            return false;
+        }
         if (is_subclass_of(new $class, "\\APDL\\DB_RECORD")) {
             if ($class::SGetPKField()) {
                 static::$__related[$field] = new DB_RELATIONSTORE($class);
+                return true;
             } else {
-                apdl_log("Classes pointing to tables without a primary key cannot be used as relation mapping targets!", L_ERROR);
+                log("Classes pointing to tables without a primary key cannot be used as relation mapping targets!", L_ERROR);
+                return false;
             }
         } else {
-            apdl_log("$class is not a subclass of \\APDL\\DB_RECORD and because of this cannot be used as a relation mapping target class!", L_ERROR);
+            log("$class is not a subclass of \\APDL\\DB_RECORD and because of this cannot be used as a relation mapping target class!", L_ERROR);
+            return false;
         }
     }
 
     public static function Expand($field, $default = false, $encoding = "json") {
-        static::$__expanded[$field] = array($default, $encoding);
+        if (!property_exists(get_called_class(), "__expanded")) {
+            log("To use expanded fields in this class('" . get_called_class() . "'), 'protected static \$__expanded' must be declared in it!", L_ERROR);
+        } else {
+            static::$__expanded[$field] = array($default, $encoding);
+        }
+        return true;
     }
 
     public
