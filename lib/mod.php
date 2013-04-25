@@ -31,7 +31,7 @@ class MODULESTORE {
 
 }
 
-MODULESTORE::add_dir(APDL_SYSROOT . "/mod");
+MODULESTORE::add_dir(APDL_DEFAULT_MODDIR);
 
 class MODULE {
     protected $dir, $name, $dname, $version, $binary_version, $init, $state, $loadargs;

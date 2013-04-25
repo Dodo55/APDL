@@ -8,7 +8,7 @@ namespace APDL;
 
 //Protect file from including it multiple times
 if (defined("APDL_MUST_RUN")) {
-    log("Trying to load APDL, but APDL has been included already!", L_WARNING);
+    log("Trying to include APDL loader, but it has been included already!", L_WARNING);
     return;
 }
 
@@ -25,7 +25,7 @@ error_reporting(0);
 
 //Basic constants
 define("APDL_SYSROOT", realpath(__DIR__)); //DO NOT DISTURB
-define("APDL_VERSION", "alpha 0.0.3-4");
+define("APDL_VERSION", "alpha 0.0.3-5");
 
 //Load system core
 require(APDL_SYSROOT . "/sys/const.php");

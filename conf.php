@@ -27,6 +27,9 @@ define("APDL_GLOBAL", true);
 //Protocol for URL generation
 define("APDL_PROTOCOL","http");
 
+//Default module directory
+define("APDL_DEFAULT_MODDIR",APDL_SYSROOT."/mod");
+
 //Uncomment to set webroot manually if auto-detected url is not proper. No trailing slash!
 //define("APDL_HTTP_WEBROOT","http://set.it.here/if/needed");
 //Alternatively you can use rewritepaths() at the bottom of the file to keep using auto-detection with custom rules
