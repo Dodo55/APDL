@@ -34,8 +34,8 @@ class MODULESTORE {
 MODULESTORE::add_dir(APDL_DEFAULT_MODDIR);
 
 class MODULE {
-    protected $dir, $name, $dname, $version, $binary_version, $init, $state, $loadargs;
-    public $interrupt;
+    protected $dir, $dname, $version, $binary_version, $init, $state, $loadargs;
+    public $interrupt, $name;
 
     public function getdir() {
         return $this->dir;
