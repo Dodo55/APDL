@@ -69,6 +69,11 @@ class DB_RECORD extends BASEOBJECT {
         return static::Get("", false, $order, $limit)->multi();
     }
 
+    public static function Count() {
+        $conn = db_get_active();
+        return array_values($conn->fetch($conn->query("SELECT COUNT(*) from " . $conn->prefix_table(static::$__table))))[0];
+    }
+
     public static function Where($where, $values, $order = "", $limit = "") {
         $db = db_get_active();
         if ($db) {
