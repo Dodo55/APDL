@@ -50,7 +50,7 @@ class DB_RECORD extends BASEOBJECT {
                     return new DUMMY("No primary key column in table '" . static::$__table . "', cannot query without specifying selector column!", L_ERROR);
                 }
             }
-            if ($val) {
+            if ($val || $val === 0 || $val == "0") {
                 $filter = array("`{0}`='{1}'", array($col, $val));
             } else {
                 $filter = "";
@@ -71,7 +71,7 @@ class DB_RECORD extends BASEOBJECT {
 
     public static function Count() {
         $conn = db_get_active();
-        $res=array_values($conn->fetch($conn->query("SELECT COUNT(*) from " . $conn->prefix_table(static::$__table))));
+        $res = array_values($conn->fetch($conn->query("SELECT COUNT(*) from " . $conn->prefix_table(static::$__table))));
         return $res[0];
     }
 
