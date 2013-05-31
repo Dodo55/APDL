@@ -172,6 +172,11 @@ class DB_RECORD extends BASEOBJECT {
             $this->__recdata[$field] = $encoder->encode($data[1]);
         }
         if ($this->__exists) {
+            foreach (array_keys($this->__recdata) as $field) {
+                if (!$db->do_check_field($this->__dbtable, $field)) {
+                    unset($this->__recdata[$field]);
+                }
+            }
             log("Updating existing record with primary key '" . $this->__key . "' in table " . $db->prefix_table($this->__dbtable));
             $db->query(db_querybuilder($db, "update", $this->__dbtable, array(
                 "values" => $this->__recdata,
