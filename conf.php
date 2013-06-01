@@ -61,7 +61,7 @@ function handle_safe_die(ERROR $error) {
     //change this if you want to control how the program should die in production mode
     //param $error is an ERROR object with $logentry and $code
     header('HTTP/1.1 500 Internal Server Error');
-    die();
+    //die(); //DON'T DIE HERE (from v0.0.4-1) TO LET FILE LOGGING HAPPEN!
 }
 
 function rewritepaths($path) {

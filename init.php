@@ -25,7 +25,7 @@ error_reporting(0);
 
 //Basic constants
 define("APDL_SYSROOT", realpath(__DIR__)); //DO NOT DISTURB
-define("APDL_VERSION", "alpha 0.0.4-0");
+define("APDL_VERSION", "alpha 0.0.4-1");
 
 //Load system core
 require(APDL_SYSROOT . "/sys/const.php");

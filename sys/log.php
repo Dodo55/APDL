@@ -92,13 +92,18 @@ class Log {
     static public function dumplog($target = APDL_OUTPUT_SCREEN, $die = false) {
         if ($target == APDL_OUTPUT_FILE) {
             $output = self::generate_simple();
-            file_put_contents(APDL_SYSROOT . "/logs/" . microtime(true) . "-" . get_client_ip() . ".log", $output);
+            if (APDL_SYSMODE == SYSMODE_PRODUCTION) {
+                $lsd = "production";
+            } else {
+                $lsd = "debug";
+            }
+            file_put_contents(APDL_SYSROOT . "/logs/" . $lsd . "/" . microtime(true) . "-" . get_client_ip() . ".log", $output);
         } else {
-            if (class_exists("APDL\HTML5")) {
+            if (class_exists("APDL\\HTML5")) {
                 $body = "";
                 if ($target == APDL_OUTPUT_SCREEN) {
                     $img = "";
-                    if (class_exists("APDL\HTTP")) {
+                    if (class_exists("APDL\\HTTP")) {
                         $img = HTTP::webpath(APDL_SYSROOT . "/assets/img/apdl.png");
                     }
                     $body .= "<div id='apdl_log'><img src='" . $img . "' style='display: block;margin:auto'/>";

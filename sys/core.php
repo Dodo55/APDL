@@ -79,15 +79,19 @@ class APDL {
 
     public static function die_on_fatal() {
         if (APDL_SYSMODE >= SYSMODE_DEBUG) {
+            if (APDL_LOG_FATALS === true) {
+                Log::dumplog(APDL_OUTPUT_FILE);
+            }
             Log::dumplog(APDL_OUTPUT_SCREEN, OUTPUT_DIE_CLEAN);
         } else {
             if (!APDL::sysvar("__apdl_dead", APDL_INTERNALCALL)) {
                 APDL::setvar("__apdl_dead", true, APDL_INTERNALCALL);
                 handle_safe_die(array_pop(self::$ERRORS));
+                if (APDL_LOG_FATALS === true && !APDL::sysvar("__apdl_fatal_handled_dontlog", APDL_INTERNALCALL)) {
+                    Log::dumplog(APDL_OUTPUT_FILE);
+                }
+                die();
             }
-        }
-        if (APDL_LOG_FATALS === true && !APDL::sysvar("__apdl_fatal_handled_dontlog",APDL_INTERNALCALL)) {
-            Log::dumplog(APDL_OUTPUT_FILE);
         }
     }
 
