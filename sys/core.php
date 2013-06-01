@@ -32,7 +32,7 @@ class APDL {
      * @static
      * @var array Reserved VAR names
      */
-    private static $reserved_vars = array("__encoders", "__session_logging_active");
+    private static $reserved_vars = array("__encoders", "__session_logging_active", "__test");
 
     /**
      * Set APDL Sysvar
@@ -40,13 +40,15 @@ class APDL {
      * @param string $val Sysvar value
      */
     public static function Setvar($var, $val, $internalcall = false) {
+        $deny = false;
         if (!in_array($var, self::$reserved_vars) || $internalcall == APDL_INTERNALCALL) {
             self::$vars[$var] = $val;
         } else {
-            log("Trying to overwrite reserved sysvar $var!", L_ERROR);
+            log("Trying to overwrite reserved sysvar $var!", L_WARNING);
+            $deny = true;
         }
         //Check loglevel to skip typechecks if loglevel too low
-        if (APDL_LOGLEVEL >= L_DEBUG && $internalcall != APDL_INTERNALCALL) {
+        if (APDL_LOGLEVEL >= L_DEBUG && $internalcall != APDL_INTERNALCALL && $deny == false) {
             if (is_string($val) || is_scalar($val)) {
                 $vdump = $val;
             } else {
@@ -76,9 +78,6 @@ class APDL {
 
 
     public static function die_on_fatal() {
-        if (APDL_LOG_FATALS === true) {
-            Log::dumplog(APDL_OUTPUT_FILE);
-        }
         if (APDL_SYSMODE >= SYSMODE_DEBUG) {
             Log::dumplog(APDL_OUTPUT_SCREEN, OUTPUT_DIE_CLEAN);
         } else {
@@ -86,6 +85,9 @@ class APDL {
                 APDL::setvar("__apdl_dead", true, APDL_INTERNALCALL);
                 handle_safe_die(array_pop(self::$ERRORS));
             }
+        }
+        if (APDL_LOG_FATALS === true && !APDL::sysvar("__apdl_fatal_handled_dontlog",APDL_INTERNALCALL)) {
+            Log::dumplog(APDL_OUTPUT_FILE);
         }
     }
 

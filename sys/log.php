@@ -42,7 +42,7 @@ class Log {
                 $entry->backtrace = debug_backtrace();
             }
             self::$entries[] = $entry;
-            apdl_die();
+            APDL::die_on_fatal();
         }
     }
 
