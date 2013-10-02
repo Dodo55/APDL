@@ -1,10 +1,13 @@
 <?php
+
 namespace APDL;
 
 HTTP::__ping();
 
 abstract class OUTPUT {
+
     protected $skeleton, $elements;
+
     const eseparator = "\n";
 
     public function &__get($var) {
@@ -47,9 +50,11 @@ abstract class OUTPUT {
         }
         return $out;
     }
+
 }
 
 class HTML5 extends OUTPUT {
+
     protected $skeleton = <<<EOT
 <!DOCTYPE html>
 <html>
@@ -97,7 +102,6 @@ EOT;
         $this->head[] = "<title>$title</title>";
     }
 
-
     public function attach_debugger() {
         APDL::Setvar("__session_logging_active", true, APDL_INTERNALCALL);
         $this->meta("apdl_sr", HTTP::webpath(APDL_SYSROOT));
@@ -110,7 +114,6 @@ EOT;
             $this->scriptlink(webpath(APDL_SYSROOT . "/assets/js/backtrace.js"));
         }
     }
-
 
     public static function inject_debugger($html) {
         //Check if valid HTML and get head + body
@@ -125,6 +128,27 @@ EOT;
         }
         log("Inject debugger: invalid HTML input given", L_WARNING);
         return false;
+    }
+
+}
+
+class JSON {
+
+    public static function Flush($data) {
+        $json = json_encode($data);
+        $warn = false;
+        while (ob_get_level()) {
+            if (ob_get_length()) {
+                log("Existing output data destroyed on flushing JSON output!
+                    For the best performance, you should avoid any other output in JSON responses.", L_WARNING);
+                $warn = true;
+            }
+            ob_end_clean();
+        }
+        if ($warn && APDL_SYSMODE >= SYSMODE_DEBUG) {
+            Log::dumplog(APDL_OUTPUT_FILE);
+        }
+        die($json);
     }
 
 }

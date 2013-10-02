@@ -98,4 +98,8 @@ function apdl_register_autoload($class,$file){
     \APDL\APDL::register_class($class,$file);
 }
 
+function apdl_json_flush($data){
+    \APDL\JSON::Flush($data);
+}
+
 apdl_log("Global bindings are enabled and loaded", L_INFO);

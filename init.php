@@ -25,7 +25,7 @@ error_reporting(0);
 
 //Basic constants
 define("APDL_SYSROOT", realpath(__DIR__)); //DO NOT DISTURB
-define("APDL_VERSION", "alpha 0.0.4-2");
+define("APDL_VERSION", "alpha 0.0.4-3");
 
 //Load system core
 require(APDL_SYSROOT . "/sys/const.php");
@@ -80,6 +80,7 @@ function init() {
     APDL::register_class("APDL\\DB_RELATIONSTORE", APDL_SYSROOT . "/lib/db/db.php");
     APDL::register_class("APDL\\OUTPUT", APDL_SYSROOT . "/lib/output.php");
     APDL::register_class("APDL\\HTML5", APDL_SYSROOT . "/lib/output.php");
+    APDL::register_class("APDL\\JSON", APDL_SYSROOT . "/lib/output.php");
     APDL::register_class("APDL\\ROUTING", APDL_SYSROOT . "/lib/routing.php");
     APDL::register_class("APDL\\CONTROLLER", APDL_SYSROOT . "/lib/controller.php");
     APDL::register_class("APDL\\ContollerBase", APDL_SYSROOT . "/lib/controller.php");
