@@ -2,18 +2,18 @@
 namespace APDL;
 
 class ControllerBase {
-    protected $host;
+    protected $__host;
 
     public function __construct($host) {
-        $this->host = $host;
+        $this->__host = $host;
     }
 
     protected function arg($arg) {
-        return $this->host->arg($arg);
+        return $this->__host->arg($arg);
     }
 
     protected function sublink($args) {
-        return $this->host->sublink($args);
+        return $this->__host->sublink($args);
     }
 }
 

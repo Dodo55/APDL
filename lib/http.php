@@ -14,6 +14,7 @@ class HTTP extends BASEOBJECT {
     }
 
     public static function webpath($localpath, $protocol = APDL_PROTOCOL) {
+        $localpath=  str_replace(DIRECTORY_SEPARATOR, "/", $localpath);
         $rp = rewritepaths($localpath);
         if ($rp !== false) {
             $localpath = $rp;
