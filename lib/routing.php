@@ -121,22 +121,28 @@ class ROUTING {
         return $target . "/" . implode("/", $args);
     }
 
-    public static function resolve_url($url) {
+    public static function resolve_url($path=false) {
         $caller_region = APDL::$CTRACK;
         set_codetracker("Routing");
-        $tags = explode("/", $url);
+        
+        if ($path===false){
+            log("No explicit path given, resolving from default get param '".sysvar("url_route_key")."'",L_INFO);
+            $path=$_GET[sysvar("url_route_key")];
+        }
+        
+        $tags = explode("/", $path);
         if ($tags[0] == "") {
-            log("Routing: webroot detected, resolving as route 'index'", L_INFO);
+            log("Webroot detected, resolving as route 'index'", L_INFO);
             set_codetracker($caller_region);
             return self::resolve_url("index");
         }
         $match = false;
         $target = "?";
-        log("Resolving URL route '$url'...", L_INFO);
+        log("Resolving route of path '$path'...", L_INFO);
         foreach (self::$routes as $selector => $route) {
             if (strpos($route, "/") === FALSE && $tags[0] == $selector) {
                 set_codetracker($caller_region);
-                return self::resolve_url(str_replace($selector, $route, $url));
+                return self::resolve_url(str_replace($selector, $route, $path));
             }
             $s_exp = explode("/", $selector);
             $args = array();
@@ -166,7 +172,7 @@ class ROUTING {
                 $plusargs = array_slice($tags, $index + 1);
             }
             if ($match) {
-                log("URL '$url' matches route '$selector' and resolves to: '$route'", L_INFO);
+                log("Path '$path' matches route '$selector' and resolves to: '$route'", L_INFO);
                 $te = explode("?", $route, 2);
                 if (isset($te[1])) {
                     $fixargs = self::getparams_to_arr($te[1]);

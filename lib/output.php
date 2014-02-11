@@ -4,7 +4,7 @@ namespace APDL;
 
 HTTP::__ping();
 
-abstract class OUTPUT {
+abstract class OUTPUT extends BASEOBJECT{
 
     protected $skeleton, $elements;
 

@@ -22,6 +22,7 @@ define("APDL_E_DB", 4);
 define("APDL_E_PHP", 5);
 define("APDL_E_TYPEERROR", 5);
 define("APDL_E_CONTROLLER_NOT_EXISTS", 6);
+define("APDL_E_MISSING_CONTROLLER_PARAM", 7);
 
 const L_FATAL = 1;
 const L_ERROR = 2;
@@ -35,3 +36,4 @@ const OUTPUT_DIE_CLEAN = 2;
 const SYSMODE_PRODUCTION = 1;
 const SYSMODE_DEBUG = 2;
 const SYSMODE_DEBUG_BACKTRACE = 3;
+const CONTROLLER_CLASS_SEEK_LIMIT = 4096;

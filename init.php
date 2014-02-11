@@ -25,7 +25,7 @@ error_reporting(0);
 
 //Basic constants
 define("APDL_SYSROOT", realpath(__DIR__)); //DO NOT DISTURB
-define("APDL_VERSION", "alpha 0.0.4-3");
+define("APDL_VERSION", "alpha 0.0.5-1");
 
 //Load system core
 require(APDL_SYSROOT . "/sys/const.php");
@@ -34,6 +34,7 @@ require(APDL_SYSROOT . "/sys/core.php");
 require(APDL_SYSROOT . "/sys/log.php");
 
 define("APDL_DEFAULT_CONFIG_FILE", APDL_SYSROOT . "/conf.php");
+define("APDL_DEFAULT_ROUTES_FILE",APDL_SYSROOT . "/routes.php");
 
 function load_config($config) {
     //Load configuration
@@ -77,10 +78,10 @@ function init() {
     APDL::register_class("APDL\\DB_MySQLi", APDL_SYSROOT . "/lib/db/db.php");
     APDL::register_class("APDL\\DB_RECORD", APDL_SYSROOT . "/lib/db/db.php");
     APDL::register_class("APDL\\DB_RESULT", APDL_SYSROOT . "/lib/db/db.php");
-    APDL::register_class("APDL\\DB_RELATIONSTORE", APDL_SYSROOT . "/lib/db/db.php");
+    APDL::register_class("APDL\\DB_RELATIONSTORE", APDL_SYSROOT . "/lib/db/db.php");   
     APDL::register_class("APDL\\OUTPUT", APDL_SYSROOT . "/lib/output.php");
     APDL::register_class("APDL\\HTML5", APDL_SYSROOT . "/lib/output.php");
-    APDL::register_class("APDL\\JSON", APDL_SYSROOT . "/lib/output.php");
+    APDL::register_class("APDL\\JSON", APDL_SYSROOT . "/lib/output.php");   
     APDL::register_class("APDL\\ROUTING", APDL_SYSROOT . "/lib/routing.php");
     APDL::register_class("APDL\\CONTROLLER", APDL_SYSROOT . "/lib/controller.php");
     APDL::register_class("APDL\\ContollerBase", APDL_SYSROOT . "/lib/controller.php");
@@ -88,21 +89,19 @@ function init() {
     APDL::register_class("APDL\\MODULE", APDL_SYSROOT . "/lib/mod.php");
     APDL::register_class("APDL\\DBCONF", APDL_SYSROOT . "/lib/dbconf.php");
 
-    //Load routes
-    if (sysvar("routing_load_from_file")) {
-        include(APDL_SYSROOT . "/routes.php");
-        log("Routing rules loaded", L_INFO);
-    }
-
+    //Preload output library to avoid some issue with error handling
+    OUTPUT::__ping();    
+    
     define("APDL_INITIALIZED", true);
 }
 
-function load($config = APDL_DEFAULT_CONFIG_FILE) {
+function load($config = APDL_DEFAULT_CONFIG_FILE, $routes=APDL_DEFAULT_ROUTES_FILE) {
     $ctmem = APDL::$CTRACK != "" ? APDL::$CTRACK : "Global";
     set_codetracker("APDL-Init");
 
     if (!defined("APDL_INITIALIZED")) {
         load_config($config);
+        load_config($routes);
     } else {
         log("Reloading system...", L_INFO);
     }

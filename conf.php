@@ -46,9 +46,6 @@ APDL::setvar("mysqli_persistent", true);
 APDL::setvar("url_rewrite", true); //Enable/disable URL rewriting
 APDL::setvar("url_route_key", "p"); //Set GET key of url route
 
-//Routing
-APDL::setvar("routing_load_from_file", true); //Load rules from routes.php
-
 //Set the table of the DB based variables. Will be prefixed if a table prefix is set
 APDL::setvar("dbconf_table", "apdlvars");
 
