@@ -19,13 +19,18 @@ define("APDL_START_MT", @microtime(true));
 //It is false and checked negatively as undefined constants are strings=>true
 define("APDL_MUST_RUN", false);
 
-//Error reporting off by default
-ini_set('display_errors', '0');
-error_reporting(0);
+//Error reporting ON at startup
+ini_set('display_errors', '1');
+error_reporting(E_ALL);
 
 //Basic constants
-define("APDL_SYSROOT", realpath(__DIR__)); //DO NOT DISTURB
-define("APDL_VERSION", "alpha 0.0.5-2");
+if (defined("APDL_SYMLINKED_ROOT")) {
+    //DEFINE THIS BEFORE INCLUDING APDL IF THE WEBPATHS OF APDL WEB ASSETS ARE MESSED UP BY SYMLINK RESOLVING
+     define("APDL_SYSROOT",APDL_SYMLINKED_ROOT); 
+} else {
+    define("APDL_SYSROOT", realpath(__DIR__)); //DO NOT DISTURB
+}
+define("APDL_VERSION", "alpha 0.0.5-3");
 
 //Load system core
 require(APDL_SYSROOT . "/sys/const.php");
@@ -105,7 +110,6 @@ function load($config = APDL_DEFAULT_CONFIG_FILE, $routes = APDL_DEFAULT_ROUTES_
 
     if (!defined("APDL_INITIALIZED")) {
         load_config($config);
-        load_config($routes);
     } else {
         log("Reloading system...", L_INFO);
     }
@@ -121,6 +125,7 @@ function load($config = APDL_DEFAULT_CONFIG_FILE, $routes = APDL_DEFAULT_ROUTES_
         log("***APDL " . APDL_VERSION . "***", L_INFO);
         log("Initializing at server " . APDL_SERVER_HOST . " by script " . APDL_INDEX_FILE, L_INFO);
         init();
+        load_config($routes);
     } else {
         log("Logging level set to:" . $ll, L_INFO);
         log("Setting timezone to: " . sysvar("default_timezone"), L_INFO);

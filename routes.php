@@ -6,4 +6,5 @@
  * so first set the more specific ones, then the less specific ones
  */
 
-//apdl_add_route("example/{strictarg}/[optarg]","module/controller?fixarg=value");
+//\APDL\ROUTING::add_route("example/{strictarg}/[optarg]","module/controller?fixarg=value");
+//or apdl_add_route() if global bindings are enabled
